@@ -1,4 +1,4 @@
-/// <reference path="models.js" />
+﻿/// <reference path="models.js" />
 /// <reference path="jquery-2.1.4.js" />
 /// <reference path="jquery.signalR-2.2.0.js" />
 
@@ -86,19 +86,33 @@ var AppViewModel = function () {
 	    self.showDebug(!self.showDebug());
 	};
 
-	//self.developerHub = $.connection.developerHub;
 
-	//self.developerHub.client.developerAdded = function (developer) {
-	//	console.log('here');
-	//	self.developers.shift(new Developer(developer.firstName, developer.lastName, developer.id));
-	//	self.currentDeveloper(new Developer());
-	//}
-	//$.connection.hub.start();
+	self.saveDeveloperSignalR = function () {
+		// ko.toJS converts a "Knockout object" to a regular JavaScript object
+		// SignalR wants a regular object, not JSON string
+		// must use ko.toJS
+		developerHub.server.addDeveloper(ko.toJS(self.currentDeveloper()));
+	};
 
-	//self.saveDeveloperSignalR = function () {
-	//	self.developerHub.server.addDeveloper(ko.toJS(self.currentDeveloper()));
-	//}
+	self.developerAdded = function (developer) {
+		// add the new developer to the list
+		self.developers.unshift(new Developer(developer.FirstName, developer.LastName, developer.ID));
+		// reset the display
+		self.currentDeveloper(new Developer());
+	};
 }
 
 // Bind up the view model
-ko.applyBindings(new AppViewModel());
+var appViewModel = new AppViewModel();
+ko.applyBindings(appViewModel);
+
+var developerHub = null;
+
+$(function () {
+	$.connection.hub.url = serviceRoot + '/signalr/hubs';
+	developerHub = $.connection.developerHub;
+
+	// called when developer is saved
+	developerHub.client.developerAdded = appViewModel.developerAdded;
+	$.connection.hub.start().done(function () { });
+});

@@ -23,7 +23,7 @@ namespace Services_Common.Controllers
         }
 
         // GET: api/Developers/5
-        [ResponseType(typeof(Developer))]
+        //[ResponseType(typeof(Developer))]
         public IHttpActionResult GetDeveloper(int id)
         {
             Developer developer = db.Developers.Find(id);
